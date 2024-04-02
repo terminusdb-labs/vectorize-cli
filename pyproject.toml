@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "vectorize-cli"
+version = "0.1.0"
+description = ""
+authors = ["Matthijs van Otterdijk <matthijs@terminusdb.com>"]
+license = "Apache2"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+torch = "^2.2.2"
+transformers = "^4.39.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
