@@ -12,6 +12,7 @@ torch = "^2.2.2"
 transformers = "^4.39.3"
 apache-libcloud = "^3.8.0"
 boto3 = "^1.34.76"
+paramiko = "^3.4.0"
 
 
 [build-system]
