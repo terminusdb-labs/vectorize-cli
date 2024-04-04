@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -ex
+prefix=/home/ubuntu/efs
+exec 1>$prefix/$2.log
+exec 2>$prefix/$2.err
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+
+cd ~/vectorize-cli
+poetry install --no-root
+poetry run python vectorize.py "$prefix/$1" "$prefix/$2"

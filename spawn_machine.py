@@ -13,10 +13,9 @@ secret_key = credentials.secret_key
 
 cls = get_driver(Provider.EC2)
 driver = cls(access_key, secret_key)
-
-IMAGE_ID = "ami-0c2f5dff1fc37a2bf"
-#SIZE_ID = "g5.xlarge"
-SIZE_ID = "t3.micro"
+IMAGE_ID = "ami-048c762ff30460783"
+SIZE_ID = "g5.xlarge"
+#SIZE_ID = "t3.micro"
 SUBNET ="subnet-0141736fba5a518b1"
 SG="sg-001bc2fe593af960e"
 
@@ -32,20 +31,6 @@ image = driver.get_image(IMAGE_ID)
 
 print(image)
 
-node = driver.create_node(name="test-vectorize-autospawn",
-                          image=image,
-                          size=size,
-                          ex_assign_public_ip=True,
-                          ex_subnet=subnet,
-                          ex_terminate_on_shutdown=True,
-                          ex_security_group_ids=[SG])
-print('started!!')
-print(node)
-
-[(node, [ip])] = driver.wait_until_running([node], wait_period=5, timeout=600)
-print(f'running!! {node} {ip}')
-
-
 def get_ssh_conn():
     ssh_client = SSHClient()
     ssh_client.set_missing_host_key_policy(AutoAddPolicy())
@@ -60,12 +45,31 @@ def get_ssh_conn():
             print('no valid connections.. retry')
             pass
 
+node = driver.create_node(name="test-vectorize-autospawn",
+                          image=image,
+                          size=size,
+                          ex_assign_public_ip=True,
+                          ex_subnet=subnet,
+                          #ex_terminate_on_shutdown=True,
+                          ex_security_group_ids=[SG])
+print('started!!')
+print(node)
 
-ssh_client = get_ssh_conn()
-_stdin, _stdout, _stderr = ssh_client.exec_command('cat /proc/cpuinfo')
-print(_stdout.read().decode())
-ssh_client.close()
+try:
+    [(node, [ip])] = driver.wait_until_running([node], wait_period=5, timeout=600)
+    print(f'running!! {node} {ip}')
 
 
-print(driver.destroy_node(node))
-print('ded')
+
+    ssh_client = get_ssh_conn()
+    _stdin, _stdout, _stderr = ssh_client.exec_command('./run strings.json strings.vec')
+    #print(_stdout.read().decode())
+
+    #_stdout.channel.shutdown_read()
+    exit_status = _stdout.channel.recv_exit_status()
+    print(exit_status)
+    ssh_client.close()
+finally:
+    print(driver.destroy_node(node))
+
+print('made it to the end')
