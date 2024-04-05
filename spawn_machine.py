@@ -4,6 +4,16 @@ import boto3
 from paramiko import AutoAddPolicy
 from paramiko.client import SSHClient
 from paramiko.ssh_exception import NoValidConnectionsError
+import sys
+
+if len(sys.argv) < 3:
+    print("Usage: spawn_machine <input> <output>")
+    sys.exit(1)
+
+input_file = sys.argv[1]
+output_file = sys.argv[2]
+
+print(f'input file: {input_file}\noutput_file: {output_file}')
 
 session = boto3.Session()
 credentials = session.get_credentials()
@@ -62,7 +72,7 @@ try:
 
 
     ssh_client = get_ssh_conn()
-    _stdin, _stdout, _stderr = ssh_client.exec_command('./run strings.json strings.vec')
+    _stdin, _stdout, _stderr = ssh_client.exec_command(f'./run {input_file} {output_file}')
     #print(_stdout.read().decode())
 
     #_stdout.channel.shutdown_read()
