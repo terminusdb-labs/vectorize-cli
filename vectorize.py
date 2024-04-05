@@ -4,8 +4,11 @@ import json
 from transformers import AutoTokenizer, BloomModel
 
 ### Initial version copied from model readme
+print("loading tokenizer")
 tokenizer = AutoTokenizer.from_pretrained('izhx/udever-bloom-560m')
+print("loading model")
 model = BloomModel.from_pretrained('izhx/udever-bloom-560m')
+print("loaded")
 
 boq, eoq, bod, eod = '[BOQ]', '[EOQ]', '[BOD]', '[EOD]'
 eoq_id, eod_id = tokenizer.convert_tokens_to_ids([eoq, eod])
