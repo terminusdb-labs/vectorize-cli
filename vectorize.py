@@ -3,11 +3,15 @@ import torch
 import json
 from transformers import AutoTokenizer, BloomModel
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+cpu_device = torch.device("cpu")
+print(f"Using device: {device}")
+
 ### Initial version copied from model readme
 print("loading tokenizer")
 tokenizer = AutoTokenizer.from_pretrained('izhx/udever-bloom-560m')
 print("loading model")
-model = BloomModel.from_pretrained('izhx/udever-bloom-560m')
+model = BloomModel.from_pretrained('izhx/udever-bloom-560m').cuda()
 print("loaded")
 
 boq, eoq, bod, eod = '[BOQ]', '[EOQ]', '[BOD]', '[EOD]'
@@ -28,19 +32,18 @@ def encode(texts: list, is_query: bool = False, max_length=2048):
     for ids, mask in zip(encoding['input_ids'], encoding['attention_mask']):
         ids.append(eos_id)
         mask.append(1)
-    print('tokenized')
     inputs = tokenizer.pad(encoding, return_tensors='pt')
-    print('padded')
+    inputs = inputs.to(device)
     with torch.inference_mode():
         outputs = model(**inputs)
         embeds = outputs.last_hidden_state[:, -1]
-    print('embedded')
     return embeds
 
 ### End of copy
 
 def process_chunk(strings, fp):
     tensor = encode(strings)
+    tensor = tensor.to(cpu_device)
     array = tensor.numpy().astype('float32')
     array.tofile(fp)
 
