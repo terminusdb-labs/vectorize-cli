@@ -25,7 +25,6 @@ def encode(texts: list, is_query: bool = False, max_length=2048):
     encoding = tokenizer(
         texts, truncation=True, max_length=max_length - 1, padding=True
     )
-    print(encoding)
     for ids, mask in zip(encoding['input_ids'], encoding['attention_mask']):
         ids.append(eos_id)
         mask.append(1)
