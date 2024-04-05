@@ -23,7 +23,7 @@ secret_key = credentials.secret_key
 
 cls = get_driver(Provider.EC2)
 driver = cls(access_key, secret_key)
-IMAGE_ID = "ami-05bc4fa602cdb6a0c"
+IMAGE_ID = "ami-06c87a711a9f2cf51"
 SIZE_ID = "g5.xlarge"
 #SIZE_ID = "t3.micro"
 SUBNET ="subnet-0141736fba5a518b1"
