@@ -58,7 +58,7 @@ if __name__ == '__main__':
             for line in input_fp:
                 json_str = json.loads(line)
                 chunk.append(json_str)
-                if len(chunk) == 32:
+                if len(chunk) == 320:
                   process_chunk(chunk, output_fp)
                   chunk = []
         if len(chunk) != 0:
