@@ -59,7 +59,9 @@ if __name__ == '__main__':
                 json_str = json.loads(line)
                 chunk.append(json_str)
                 if len(chunk) == 320:
+                  print('got a chunk')
                   process_chunk(chunk, output_fp)
+                  print('chunk processed')
                   chunk = []
         if len(chunk) != 0:
               process_chunk(chunk, output_fp)
