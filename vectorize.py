@@ -28,10 +28,13 @@ def encode(texts: list, is_query: bool = False, max_length=2048):
     for ids, mask in zip(encoding['input_ids'], encoding['attention_mask']):
         ids.append(eos_id)
         mask.append(1)
+    print('tokenized')
     inputs = tokenizer.pad(encoding, return_tensors='pt')
+    print('padded')
     with torch.inference_mode():
         outputs = model(**inputs)
         embeds = outputs.last_hidden_state[:, -1]
+    print('embedded')
     return embeds
 
 ### End of copy
