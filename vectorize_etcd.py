@@ -2,9 +2,11 @@ from etcd_task import TaskQueue
 import vectorize
 import sys
 import json
+import socket
+import argparse
 
 def retrieve_identity():
-    return 'dummy'
+    return socket.getfqdn()
 
 def start_(task):
     print('really gonna start now!')
@@ -48,8 +50,14 @@ def resume(task):
     pass
 
 if __name__ == '__main__':
-    identity = retrieve_identity()
-    queue = TaskQueue('vectorizer', identity)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--etcd', help='hostname of etcd server')
+    parser.add_argument('--identity', default=retrieve_identity, help='the identity this worker will use when claiming tasks')
+    args = parser.parse_args()
+    if args.etcd:
+        queue = TaskQueue('vectorizer', args.identity, host=args.etcd)
+    else:
+        queue = TaskQueue('vectorizer', args.identity)
 
     while True:
         task = queue.next_task()
