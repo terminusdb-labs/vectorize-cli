@@ -42,6 +42,8 @@ class Task:
         if reason:
             # set our state to reflect the interruption
             self.interrupt(reason)
+            # .. revoke our lease
+            self.lease.revoke()
             # .. and raise an exception to leave whatever computation we're doing
             raise TaskInterrupted(self.task_id, reason)
 
