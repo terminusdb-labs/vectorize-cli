@@ -16,7 +16,7 @@ def retrieve_identity():
 
 def resolve_path(path):
     rootdir = os.path.abspath(directory)
-    normalized = os.path.abspath(f'{rootdir}/{path}')
+    normalized = os.path.normpath(f'{rootdir}/{path}')
     if not normalized.startswith(rootdir):
         raise ValueError(f'path {path} is invalid')
 

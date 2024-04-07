@@ -153,11 +153,10 @@ class TaskQueue:
         self.service_name = service_name
         self.identity = identity
         self.etcd = etcd3.client(**kwargs)
-        self.prefix = f'/services/{service_name}/'
-        self.queue_prefix = f'{self.prefix}queue/'
-        self.tasks_prefix = f'{self.prefix}tasks/'
-        self.claims_prefix = f'{self.prefix}claims/'
-        self.interrupt_prefix = f'{self.prefix}interrupt/'
+        self.queue_prefix = f'/services/queue/{service_name}/'
+        self.tasks_prefix = f'/services/tasks/{service_name}/'
+        self.claims_prefix = f'/services/claims/{service_name}/'
+        self.interrupt_prefix = f'/services/interrupt/{service_name}/'
 
     def queue_key_to_task_id(self, queue_key):
         queue_key = queue_key.decode('utf-8')
