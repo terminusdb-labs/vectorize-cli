@@ -20,7 +20,7 @@ class Task:
         self.task_id = task_id
         self.lease = lease
         self.task_key = f'{self.queue.tasks_prefix}{task_id}'
-        self.claim_key = f'{self.queue.claims_prefix}/{task_id}'
+        self.claim_key = f'{self.queue.claims_prefix}{task_id}'
 
         self.state = self._task_state()
 
