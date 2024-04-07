@@ -66,6 +66,7 @@ def resume(task):
         task.resume()
     init = task.init()
     size = os.path.getsize(init['output_file'])
+    print(f'size of {init["output_file"]}: {size}')
     count = size // 4096
     truncate_to = count * 4096
 
