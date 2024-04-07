@@ -9,7 +9,7 @@ import os
 def retrieve_identity():
     return socket.getfqdn()
 
-def start_(task, truncate=None, skip=0):
+def start_(task, truncate=0, skip=0):
     init = task.init()
     input_file = init['input_file']
     output_file = init['output_file']
@@ -18,11 +18,11 @@ def start_(task, truncate=None, skip=0):
     print(f"Output file: {output_file}")
 
     chunk = []
-    count = 0
-    with open(output_file, 'w') as output_fp:
+    count = skip
+    with open(output_file, 'r+') as output_fp:
         # truncate to a safe known size
-        if truncate:
-            output_fp.truncate(truncate)
+        output_fp.truncate(truncate)
+        output_fp.seek(0, os.SEEK_END)
 
         with open(input_file, 'r') as input_fp:
             for line in input_fp:
@@ -66,7 +66,6 @@ def resume(task):
         task.resume()
     init = task.init()
     size = os.path.getsize(init['output_file'])
-    print(f'size of {init["output_file"]}: {size}')
     count = size // 4096
     truncate_to = count * 4096
 
