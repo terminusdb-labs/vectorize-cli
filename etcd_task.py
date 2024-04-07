@@ -28,8 +28,9 @@ class Task:
         self.task_key = f'{self.queue.tasks_prefix}{task_id}'
         self.claim_key = f'{self.queue.claims_prefix}{task_id}'
         self.interrupt_key = f'{self.queue.interrupt_prefix}{task_id}'
-        self.interrupting = False
+        self.interrupting = True # not strictly true, just don't want to trigger interrupting logic
         self.state = self._task_state()
+        self.interrupting = False
 
     def alive(self):
         # this gets called in various places that do reads and updates
