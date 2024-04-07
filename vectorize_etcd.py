@@ -71,6 +71,8 @@ def resume(task):
 
     print(f'resuming after having already vectorized {count}')
 
+    task.set_progress(count)
+
     try:
         start_(task, truncate=truncate_to, skip=count)
     except TaskInterrupted as e:
