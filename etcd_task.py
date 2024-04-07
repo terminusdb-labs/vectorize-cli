@@ -14,6 +14,12 @@ class TaskTimeoutError(Exception):
         self.task_id = task_id
         super().__init__(self.message)
 
+class TaskInterrupted(Exception):
+    def __init__(self, task_id, reason):
+        self.task_id = task_id
+        self.reason = reason
+        super().__init__(f'task {task_id} was interrupted: {reason}')
+
 class Task:
     def __init__(self, queue, task_id, lease=None):
         self.queue = queue
@@ -21,29 +27,39 @@ class Task:
         self.lease = lease
         self.task_key = f'{self.queue.tasks_prefix}{task_id}'
         self.claim_key = f'{self.queue.claims_prefix}{task_id}'
-
+        self.interrupt_key = f'{self.queue.interrupt_prefix}{task_id}'
+        self.interrupting = False
         self.state = self._task_state()
 
     def alive(self):
+        # this gets called in various places that do reads and updates
+        # to notify etcd that we're still alive. It is also used to
+        # check if someone wants to interrupt us.
         if self.lease.refresh()[0].TTL == 0:
             raise TaskTimeoutError(self.task_id)
+        (reason,_) = self.queue.etcd.get(self.interrupt_key)
+        if reason:
+            # set our state to reflect the interruption
+            self.interrupt(reason)
+            # .. and raise an exception to leave whatever computation we're doing
+            raise TaskInterrupted(self.task_id, reason)
 
     def _task_state(self):
         # We want to allow retrieval of the state even without lease,
         # but if there is a lease, let's also renew it upon retrieval
-        if self.lease:
+        if self.lease and not self.interrupting:
             self.alive()
-        print(self.task_key)
         (task_string,_) = self.queue.etcd.get(self.task_key)
 
         return json.loads(task_string)
 
 
-    def _update_task_state(self):
+    def _update_task_state(self, extra_ops=[]):
         # Only set when we have the lease, so transaction to make sure.
         state_string = json.dumps(self.state)
         # setting the task state implies we're alive and kicking so let's make sure etcd knows that
-        self.alive()
+        if not self.interrupting:
+            self.alive()
         # this transaction will really only fail if for some weird
         # reason between the alive above and the transaction below,
         # the lease expired. This will only happen in cases of serious
@@ -51,12 +67,14 @@ class Task:
         # happening to the host running this script. Transaction
         # failure here will throw an ugly error but I think the
         # ugliness fits the seriousness.
-        self.queue.etcd.transaction(
-            compare=[],
-            success=[
+        success_ops = [
                 self.queue.etcd.transactions.put(self.claim_key, self.queue.identity, lease=self.lease),
                 self.queue.etcd.transactions.put(self.task_key, state_string)
-            ],
+            ]
+        success_ops.extend(extra_ops)
+        self.queue.etcd.transaction(
+            compare=[],
+            success=success_ops,
             failure=[])
 
     def status(self):
@@ -87,6 +105,28 @@ class Task:
         self._transition_to_status('running', 'error')
         self.lease.revoke()
 
+    def interrupt(self, reason):
+        self.interrupting = True
+
+        match reason:
+            case 'cancel':
+                status = 'canceled'
+            case 'pause':
+                status = 'paused'
+            case _:
+                raise ValueError(reason)
+
+        # We need to clear the interrupt key, as well as set our own
+        # status
+        self._verify_status('running')
+        self.status = reason
+        self._update_task_state(extra_ops=[self.queue.etcd.transactions.delete(self.interrupt_key)])
+
+        self.interrupting = False
+
+    def resume(self):
+        self._transition_to_status('paused', 'running')
+
     def init(self):
         return self.state.get('init')
 
@@ -114,6 +154,7 @@ class TaskQueue:
         self.queue_prefix = f'{self.prefix}queue/'
         self.tasks_prefix = f'{self.prefix}tasks/'
         self.claims_prefix = f'{self.prefix}claims/'
+        self.interrupt_prefix = f'{self.prefix}interrupt/'
 
     def queue_key_to_task_id(self, queue_key):
         queue_key = queue_key.decode('utf-8')

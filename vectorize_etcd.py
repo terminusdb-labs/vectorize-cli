@@ -31,23 +31,24 @@ def start_(task):
                     task.alive()
                     vectorize.process_chunk(chunk, output_fp)
                     count += len(chunk)
-                    print(f'setting progress to {count}')
                     task.set_progress(count)
                     chunk = []
         if len(chunk) != 0:
               vectorize.process_chunk(chunk, output_fp)
               output_fp.flush()
-              os.fsync(output_fp.fileno())
               count += len(chunk)
               task.set_progress(count)
+
+        os.fsync(output_fp.fileno())
         task.finish(count)
 
 def start(task):
     try:
         start_(task)
+    except TaskInterrupted as e:
+        pass
     except Exception as e:
         task.finish_error(str(e))
-
 
 def resume(task):
     pass
