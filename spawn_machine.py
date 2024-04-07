@@ -60,7 +60,8 @@ node = driver.create_node(name="test-vectorize-autospawn",
                           size=size,
                           ex_assign_public_ip=True,
                           ex_subnet=subnet,
-                          #ex_terminate_on_shutdown=True,
+                          ex_terminate_on_shutdown=True,
+                          #ex_spot=True,
                           ex_security_group_ids=[SG])
 print('started!!')
 print(node)
