@@ -4,6 +4,7 @@ import sys
 import json
 import socket
 import argparse
+import os
 
 def retrieve_identity():
     return socket.getfqdn()
@@ -35,6 +36,8 @@ def start_(task):
                     chunk = []
         if len(chunk) != 0:
               vectorize.process_chunk(chunk, output_fp)
+              output_fp.flush()
+              os.fsync(output_fp.fileno())
               count += len(chunk)
               task.set_progress(count)
         task.finish(count)
