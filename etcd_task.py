@@ -119,7 +119,7 @@ class Task:
         # We need to clear the interrupt key, as well as set our own
         # status
         self._verify_status('running')
-        self.state['status'] = reason
+        self.state['status'] = status
         self._update_task_state(extra_ops=[self.queue.etcd.transactions.delete(self.interrupt_key)])
 
         self.interrupting = False
