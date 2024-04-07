@@ -28,6 +28,7 @@ def start_(task):
                     task.alive()
                     vectorize.process_chunk(chunk, output_fp)
                     count += len(chunk)
+                    print(f'setting progress to {count}')
                     task.set_progress(count)
                     chunk = []
         if len(chunk) != 0:
