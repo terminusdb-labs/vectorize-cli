@@ -109,9 +109,9 @@ class Task:
         self.interrupting = True
 
         match reason:
-            case 'cancel':
+            case b'cancel':
                 status = 'canceled'
-            case 'pause':
+            case b'pause':
                 status = 'paused'
             case _:
                 raise ValueError(reason)

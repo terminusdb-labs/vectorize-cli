@@ -1,4 +1,4 @@
-from etcd_task import TaskQueue
+from etcd_task import TaskQueue, TaskInterrupted
 import vectorize
 import sys
 import json
