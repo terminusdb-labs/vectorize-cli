@@ -25,12 +25,12 @@ def start_(task, truncate=None, skip=0):
             output_file.truncate(truncate)
 
         with open(input_file, 'r') as input_fp:
-            # skip already processed lines
-            if skip != 0:
-                skip -= 1
-                continue
-
             for line in input_fp:
+                # skip already processed lines
+                if skip != 0:
+                    skip -= 1
+                    continue
+
                 json_str = json.loads(line)
                 chunk.append(json_str)
                 if len(chunk) == 100:
