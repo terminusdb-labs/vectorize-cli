@@ -48,10 +48,10 @@ def start_(task, truncate=None, skip=0):
         os.fsync(output_fp.fileno())
         task.finish(count)
 
-def start(task, truncate=None,skip=0):
+def start(task):
     task.start()
     try:
-        start_(task, truncate=truncate, skip=skip)
+        start_(task)
     except TaskInterrupted as e:
         pass
     except Exception as e:
@@ -71,7 +71,12 @@ def resume(task):
 
     print(f'resuming after having already vectorized {count}')
 
-    start(task, truncate=truncate_to, skip=count)
+    try:
+        start_(task, truncate=truncate_to, skip=count)
+    except TaskInterrupted as e:
+        pass
+    except Exception as e:
+        task.finish_error(str(e))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
