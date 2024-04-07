@@ -22,7 +22,7 @@ def start_(task, truncate=None, skip=0):
     with open(output_file, 'w') as output_fp:
         # truncate to a safe known size
         if truncate:
-            output_file.truncate(truncate)
+            output_fp.truncate(truncate)
 
         with open(input_file, 'r') as input_fp:
             for line in input_fp:
