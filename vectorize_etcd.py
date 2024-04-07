@@ -52,12 +52,17 @@ def resume(task):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
-    parser.add_argument('--identity', default=retrieve_identity, help='the identity this worker will use when claiming tasks')
+    parser.add_argument('--identity', help='the identity this worker will use when claiming tasks')
     args = parser.parse_args()
-    if args.etcd:
-        queue = TaskQueue('vectorizer', args.identity, host=args.etcd)
+    if args.identity is None:
+        identity = retrieve_identity()
     else:
-        queue = TaskQueue('vectorizer', args.identity)
+        identity = args.identity
+
+    if args.etcd:
+        queue = TaskQueue('vectorizer', identity, host=args.etcd)
+    else:
+        queue = TaskQueue('vectorizer', identity)
 
     while True:
         task = queue.next_task()
