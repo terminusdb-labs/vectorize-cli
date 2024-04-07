@@ -96,6 +96,7 @@ class Task:
     def set_progress(self, progress):
         self._verify_status('running')
         self.state['progress'] = progress
+        self._update_task_state()
 
     def complete(self):
         return self.state.get('complete')
