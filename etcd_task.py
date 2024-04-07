@@ -20,7 +20,7 @@ class Task:
         self.task_id = task_id
         self.lease = lease
         self.task_key = f'{self.queue.tasks_prefix}{task_id}'
-        self.claim_key = f'{self.task_key}/claimed'
+        self.claim_key = f'{self.queue.claims_prefix}/{task_id}'
 
         self.state = self._task_state()
 
@@ -112,6 +112,7 @@ class TaskQueue:
         self.prefix = f'/services/{service_name}/'
         self.queue_prefix = f'{self.prefix}queue/'
         self.tasks_prefix = f'{self.prefix}tasks/'
+        self.claims_prefix = f'{self.prefix}claims/'
 
     def queue_key_to_task_id(self, queue_key):
         queue_key = queue_key.decode('utf-8')
@@ -124,7 +125,7 @@ class TaskQueue:
     def claim_task(self, task_id, ttl=10):
         queue_key = f'{self.queue_prefix}{task_id}'
         task_key = f'{self.tasks_prefix}{task_id}'
-        claim_key = f'{self.tasks_prefix}{task_id}/claimed'
+        claim_key = f'{self.claims_prefix}{task_id}'
 
         lease = self.etcd.lease(ttl)
         (result,_) = self.etcd.transaction(
