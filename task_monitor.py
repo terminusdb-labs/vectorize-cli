@@ -34,7 +34,8 @@ def enqueue(task_key):
     claim = task_to_claim(task_key)
     queue = task_to_queue(task_key)
     # requeue stuff
-    print(etcd.transaction(
+    print(f'enqueue {queue}')
+    etcd.transaction(
         compare=[
             etcd.transactions.version(claim) == 0,
             etcd.transactions.version(queue) == 0,
@@ -43,7 +44,7 @@ def enqueue(task_key):
             etcd.transactions.put(queue, '')
         ],
         failure=[]
-    ))
+    )
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -68,7 +69,6 @@ if __name__ == '__main__':
         result = etcd.get_prefix(TASKS, sort_order='ascend', sort_target='create')
         for (v, kv) in result:
             state = json.loads(v)
-            print(state)
             if not runnable_status(state['status']):
                 continue
 
@@ -76,10 +76,8 @@ if __name__ == '__main__':
             enqueue(task_key)
 
         # Now that any stragglers are cleared up, it is time to start relying on the watch
-        print('time for work')
         while True:
             event = q.get()
-            print(event)
             # is it a disappearing claim?
             if isinstance(event, etcd3.events.DeleteEvent):
                 key = event.key.decode('utf-8')
