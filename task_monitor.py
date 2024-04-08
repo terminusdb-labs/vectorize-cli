@@ -99,5 +99,5 @@ if __name__ == '__main__':
                         enqueue(key)
 
     finally:
-        tasks_watch_cancel.cancel()
-        claims_watch_cancel.cancel()
+        # todo proper cleanup here
+        pass
