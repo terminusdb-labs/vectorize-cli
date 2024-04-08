@@ -147,6 +147,8 @@ class Task:
     def error(self):
         return self.state.get('error')
 
+def runnable_status(status):
+    return status in ['pending', 'running']
 
 class TaskQueue:
     def __init__(self, service_name, identity, **kwargs):
@@ -187,10 +189,12 @@ class TaskQueue:
                 self.etcd.transactions.delete(queue_key),
             ])
         if result:
-            return Task(self, task_id, lease)
-        else:
-            # explicit default
-            return None
+            task = Task(self, task_id, lease)
+            if runnable_status(task.status()):
+                return Task(self, task_id, lease)
+
+        # explicit default
+        return None
 
     def next_task(self):
         # we start out be setting up a watch, cause if we wait until after our query we're potentially gonna have a race condition
