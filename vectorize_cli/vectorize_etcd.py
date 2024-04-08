@@ -1,5 +1,5 @@
 from vectorize_cli.etcd_task import TaskQueue, TaskInterrupted
-import vectorize_cli.vectorize
+from vectorize_cli import vectorize
 import sys
 import json
 import socket
