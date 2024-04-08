@@ -1305,6 +1305,16 @@ files = [
 mpmath = ">=0.19"
 
 [[package]]
+name = "systemd-python"
+version = "235"
+description = "Python interface for libsystemd"
+optional = false
+python-versions = "*"
+files = [
+    {file = "systemd-python-235.tar.gz", hash = "sha256:4e57f39797fd5d9e2d22b8806a252d7c0106c936039d1e71c8c6b8008e695c0a"},
+]
+
+[[package]]
 name = "tenacity"
 version = "8.2.3"
 description = "Retry code until it succeeds"
@@ -1645,4 +1655,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "0cdfaa57cf4d7153039c183cc409f92855cd206c9b643832225a833234b10579"
+content-hash = "da3e8a3327d071ca6a12f8ae4f767dcd72770943a761d763e3e7b6cd3ff2bbe4"

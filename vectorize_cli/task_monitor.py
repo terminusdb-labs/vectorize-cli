@@ -73,7 +73,7 @@ def enqueue(task_key):
         failure=[]
     )
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
     args = parser.parse_args()
@@ -99,6 +99,7 @@ if __name__ == '__main__':
             if state['status'] == 'running':
                 pause_if_orphan(kv.key.decode('utf-8'))
             elif runnable_status(state['status']):
+                print(kv)
                 task_key = kv.key.decode('utf-8')
                 enqueue(task_key)
 
@@ -123,3 +124,6 @@ if __name__ == '__main__':
     finally:
         # todo proper cleanup here
         pass
+
+if __name__ == '__main__':
+    main()

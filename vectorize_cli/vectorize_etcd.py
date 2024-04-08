@@ -1,11 +1,12 @@
-from etcd_task import TaskQueue, TaskInterrupted
-import vectorize
+from vectorize_cli.etcd_task import TaskQueue, TaskInterrupted
+import vectorize_cli.vectorize
 import sys
 import json
 import socket
 import argparse
 import os
 import traceback
+from systemd import journal
 
 identity = None
 directory = None
@@ -27,8 +28,8 @@ def start_(task, truncate=0, skip=0):
     input_file = resolve_path(init['input_file'])
     output_file = resolve_path(init['output_file'])
 
-    print(f"Input file: {input_file}")
-    print(f"Output file: {output_file}")
+    journal.send(f"Input file: {input_file}")
+    journal.send(f"Output file: {output_file}")
 
     progress = task.progress()
     if progress is None:
@@ -92,7 +93,7 @@ def resume(task):
     count = size // 4096
     truncate_to = count * 4096
 
-    print(f'resuming after having already vectorized {count}')
+    journal.send(f'resuming after having already vectorized {count}')
     progress = task.progress()
     total = None
     if progress is not None:
@@ -111,7 +112,7 @@ def resume(task):
     except Exception as e:
         task.finish_error(str(e))
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
     parser.add_argument('--identity', help='the identity this worker will use when claiming tasks')
@@ -132,16 +133,23 @@ if __name__ == '__main__':
     else:
         queue = TaskQueue('vectorizer', identity)
 
-    while True:
-        task = queue.next_task()
-        print('wow a task: ' + task.status())
-        match task.status():
-            case 'pending':
-                print('starting..')
-                start(task)
-            case 'running':
-                resume(task)
-            case 'resuming':
-                resume(task)
-            case _:
-                sys.stderr.write(f'cannot process task with status {task.status()}\n')
+    journal.send('start main loop')
+    try:
+        while True:
+            task = queue.next_task()
+            journal.send('wow a task: ' + task.status())
+            match task.status():
+                case 'pending':
+                    journal.send('starting..')
+                    start(task)
+                case 'running':
+                    resume(task)
+                case 'resuming':
+                    resume(task)
+                case _:
+                    sys.stderr.write(f'cannot process task with status {task.status()}\n')
+    except SystemExit:
+        pass
+
+if __name__ == '__main__':
+    main()
