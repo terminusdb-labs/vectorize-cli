@@ -30,6 +30,15 @@ def start_(task, truncate=0, skip=0):
     print(f"Input file: {input_file}")
     print(f"Output file: {output_file}")
 
+    progress = task.progress()
+    if progress is None:
+        # this is the first run. lets determine how large this file is
+        with open(input_file, 'r') as input_fp:
+            total = sum(1 for line in input_fp)
+            task.set_progress({'count': 0, 'total': total})
+    else:
+        total = progress['total']
+
     chunk = []
     count = skip
     with open(output_file, 'a+') as output_fp:
@@ -50,13 +59,13 @@ def start_(task, truncate=0, skip=0):
                     task.alive()
                     vectorize.process_chunk(chunk, output_fp)
                     count += len(chunk)
-                    task.set_progress(count)
+                    task.set_progress({'count': count, 'total': total})
                     chunk = []
         if len(chunk) != 0:
               vectorize.process_chunk(chunk, output_fp)
               output_fp.flush()
               count += len(chunk)
-              task.set_progress(count)
+              task.set_progress({'count': count, 'total': total})
 
         os.fsync(output_fp.fileno())
         task.finish(count)
@@ -84,8 +93,16 @@ def resume(task):
     truncate_to = count * 4096
 
     print(f'resuming after having already vectorized {count}')
+    progress = task.progress()
+    total = None
+    if progress is not None:
+        total = progres.get('total')
 
-    task.set_progress(count)
+    if total is None:
+        with open(resolve_path(init['input_file']), 'r') as input_fp:
+            total = sum(1 for line in input_fp)
+
+    task.set_progress({'count': count, 'total': total})
 
     try:
         start_(task, truncate=truncate_to, skip=count)

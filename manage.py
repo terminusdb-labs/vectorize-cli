@@ -26,7 +26,7 @@ def status_line(key, val):
     status_line = f'{task_id}: {state["status"]}'
     progress = state.get('progress')
     if progress:
-        status_line += f' progress: {str(progress)}'
+        status_line += f' progress: {progress["count"]}/{progress["total"]}'
 
     return status_line
 
