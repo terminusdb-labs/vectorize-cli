@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import os
+import sys
 import etcd3
 import json
 
@@ -52,8 +53,17 @@ def pause(args):
 
 def resume(args):
     task_name = args.task_name
-    queue_key = f'/services/queue/vectorizer/{task_name}'
-    etcd.put(queue_key, '')
+    task_key = f'/services/tasks/vectorizer/{task_name}'
+    (state_bytes, _) = etcd.get(task_key)
+    state = json.loads(state_bytes)
+    if state['status']  != 'paused':
+        print('task is not paused')
+        sys.exit(1)
+
+    state['status'] = 'pending'
+    if not etcd.replace(task_key, state_bytes, json.dumps(state)):
+        print('resume failed')
+        sys.exit(1)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
