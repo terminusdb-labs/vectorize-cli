@@ -43,7 +43,8 @@ def pause_if_orphan(task_key):
     state = json.loads(v)
 
     if state['status'] == 'running':
-        state['status'] = 'paused'
+        # set to resuming instead of paused for quick repickup
+        state['status'] = 'resuming'
         etcd.transaction(
             compare=[
                 etcd.transactions.value(task_key) == v,
