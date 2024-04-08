@@ -21,7 +21,7 @@ def task_to_queue(task):
 
 def claim_to_task(claim):
     task_id = claim[len(CLAIMS):]
-    return f'{TASK}{task_id}'
+    return f'{TASKS}{task_id}'
 
 def runnable_status(status):
     return status in ['pending', 'running']
