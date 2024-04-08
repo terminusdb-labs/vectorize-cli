@@ -40,12 +40,12 @@ def pause_if_orphan(task_key):
         state['status'] = 'paused'
         etcd.transaction(
             compare=[
-                etcd.transaction.value(task_key) == v,
+                etcd.transactions.value(task_key) == v,
                 etcd.transactions.version(claim) == 0, # this should always be true if the above is true, but let's check anyway
             ],
             success=[
-                etc.transaction.put(task_key, json.dumps(state)),
-                etc.delete(interrupt) # these can't be any good
+                etc.transactions.put(task_key, json.dumps(state)),
+                etc.transactions.delete(interrupt) # these can't be any good
             ],
             failure=[]
         )
