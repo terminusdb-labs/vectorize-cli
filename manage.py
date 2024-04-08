@@ -23,10 +23,10 @@ def status_line(key, val):
     state = json.loads(val)
 
     task_id = key[len('/services/tasks/vectorizer/'):]
-    status_line = f'{task_id}: {state["status"]}'
+    status_line = f'{task_id} ({state["init"]["input_file"]}->{state["init"]["output_file"]}): {state["status"]}'
     progress = state.get('progress')
     if progress:
-        status_line += f' progress: {progress["count"]}/{progress["total"]}'
+        status_line += f', progress: {progress["count"]}/{progress["total"]}'
 
     return status_line
 
