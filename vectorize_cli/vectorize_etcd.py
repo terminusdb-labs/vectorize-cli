@@ -124,6 +124,7 @@ def main():
     directory = args.directory
     if directory is None:
         directory = os.getenv('VECTORIZER_DIRECTORY')
+    journal.send(f'using directory {directory}')
 
     etcd = args.etcd
     if etcd is None:
