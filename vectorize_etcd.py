@@ -96,7 +96,7 @@ def resume(task):
     progress = task.progress()
     total = None
     if progress is not None:
-        total = progres.get('total')
+        total = progress.get('total')
 
     if total is None:
         with open(resolve_path(init['input_file']), 'r') as input_fp:
