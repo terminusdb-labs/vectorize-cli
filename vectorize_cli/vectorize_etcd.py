@@ -146,8 +146,6 @@ def main():
                 case 'pending':
                     journal.send('starting..')
                     start(task)
-                case 'running':
-                    resume(task)
                 case 'resuming':
                     resume(task)
                 case _:

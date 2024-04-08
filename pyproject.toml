@@ -16,6 +16,7 @@ paramiko = "^3.4.0"
 etcd3 = "^0.12.0"
 protobuf = "^3.20.0"
 systemd-python = "^235"
+accelerate = "^0.29.1"
 
 
 [build-system]

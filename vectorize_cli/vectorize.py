@@ -9,9 +9,9 @@ print(f"Using device: {device}")
 
 ### Initial version copied from model readme
 print("loading tokenizer")
-tokenizer = AutoTokenizer.from_pretrained('izhx/udever-bloom-560m')
+tokenizer = AutoTokenizer.from_pretrained('izhx/udever-bloom-560m', device_map='auto')
 print("loading model")
-model = BloomModel.from_pretrained('izhx/udever-bloom-560m').cuda()
+model = BloomModel.from_pretrained('izhx/udever-bloom-560m', device_map='auto').cuda()
 print("loaded")
 
 boq, eoq, bod, eod = '[BOQ]', '[EOQ]', '[BOD]', '[EOD]'
