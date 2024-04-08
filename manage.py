@@ -49,8 +49,8 @@ def list_tasks(args):
 def pause(args):
     task_name = args.task_name
     task_key = f'/services/tasks/vectorizer/{task_name}'
-    queue = task_to_queue(task_key)
-    interrupt = task_to_interrupt(task_key)
+    queue = f'/services/queue/vectorizer/{task_name}'
+    interrupt = f'/services/interrupts/vectorizer/{task_name}'
     (task_data_bytes,_) = etcd.get(task_key)
     task_data = json.loads(task_data_bytes)
     if task_data['state'] == 'running':
