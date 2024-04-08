@@ -76,7 +76,7 @@ def resume(task):
     # This is determined by the current file size. rounding that down
     # to the nearest multiple of the vector size gets us a reliable
     # count. This might be lower than the number in progress!
-    if task.status() == 'paused':
+    if task.status() == 'resuming':
         task.resume()
     init = task.init()
     size = os.path.getsize(resolve_path(init['output_file']))

@@ -128,7 +128,7 @@ class Task:
         self.interrupting = False
 
     def resume(self):
-        self._transition_to_status('paused', 'running')
+        self._transition_to_status('resuming', 'running')
 
     def init(self):
         return self.state.get('init')
