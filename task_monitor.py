@@ -10,6 +10,7 @@ etcd = None
 CLAIMS = '/services/claims/'
 TASKS = '/services/tasks/'
 QUEUE = '/services/queue/'
+INTERRUPT = '/services/interrupt/'
 
 def task_to_claim(task):
     task_id = task[len(TASKS):]
@@ -18,6 +19,10 @@ def task_to_claim(task):
 def task_to_queue(task):
     task_id = task[len(TASKS):]
     return f'{QUEUE}{task_id}'
+
+def task_to_interrupt(task):
+    task_id = task[len(TASKS):]
+    return f'{INTERRUPT}{task_id}'
 
 def claim_to_task(claim):
     task_id = claim[len(CLAIMS):]
@@ -33,6 +38,7 @@ def iterator_to_queue(it, q):
 def pause_if_orphan(task_key):
     claim = task_to_claim(task_key)
     queue = task_to_queue(task_key)
+    interrupt = task_to_interrupt(task_key)
     (v,_) = etcd.get(task_key)
     state = json.loads(v)
 
