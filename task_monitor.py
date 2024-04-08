@@ -85,7 +85,7 @@ if __name__ == '__main__':
                 key = event.key.decode('utf-8')
                 if key.startswith(CLAIMS):
                     task_key = claim_to_task(key)
-                    (v,_) = etcd.get(task)
+                    (v,_) = etcd.get(task_key)
                     state = json.loads(v)
                     if runnable_status(state['status']):
                         # claim disappeared, but this task is still runnable. requeue!
