@@ -60,7 +60,7 @@ def resume(args):
         print('task is not paused')
         sys.exit(1)
 
-    state['status'] = 'pending'
+    state['status'] = 'resuming'
     if not etcd.replace(task_key, state_bytes, json.dumps(state)):
         print('resume failed')
         sys.exit(1)

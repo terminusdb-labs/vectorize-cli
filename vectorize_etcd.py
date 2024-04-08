@@ -124,7 +124,7 @@ if __name__ == '__main__':
                 start(task)
             case 'running':
                 resume(task)
-            case 'paused':
+            case 'resuming':
                 resume(task)
             case _:
                 sys.stderr.write(f'cannot process task with status {task.status()}\n')

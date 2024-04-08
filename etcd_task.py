@@ -148,7 +148,7 @@ class Task:
         return self.state.get('error')
 
 def runnable_status(status):
-    return status in ['pending', 'running', 'paused']
+    return status in ['pending', 'running', 'resuming']
 
 class TaskQueue:
     def __init__(self, service_name, identity, **kwargs):

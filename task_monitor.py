@@ -24,7 +24,7 @@ def claim_to_task(claim):
     return f'{TASKS}{task_id}'
 
 def runnable_status(status):
-    return status in ['pending', 'running']
+    return status in ['pending', 'running', 'resuming']
 
 def iterator_to_queue(it, q):
     for v in it:
