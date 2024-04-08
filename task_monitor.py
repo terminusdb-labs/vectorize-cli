@@ -44,8 +44,8 @@ def pause_if_orphan(task_key):
                 etcd.transactions.version(claim) == 0, # this should always be true if the above is true, but let's check anyway
             ],
             success=[
-                etc.transactions.put(task_key, json.dumps(state)),
-                etc.transactions.delete(interrupt) # these can't be any good
+                etcd.transactions.put(task_key, json.dumps(state)),
+                etcd.transactions.delete(interrupt) # these can't be any good
             ],
             failure=[]
         )
