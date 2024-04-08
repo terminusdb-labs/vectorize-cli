@@ -66,8 +66,8 @@ def pause(args):
                 etcd.transactions.version(claim) == 0, # this should always be true if the above is true, but let's check anyway
             ],
             success=[
-                etcd.transactions.put(task_key, json.dumps(task_data))
-                etcd.transactions.delete(interrupt) # these can't be any good
+                etcd.transactions.put(task_key, json.dumps(task_data)),
+                etcd.transactions.delete(interrupt), # these can't be any good
                 etcd.transactions.delete(queue) # don't want to get this from queue anyway
             ],
             failure=[]
