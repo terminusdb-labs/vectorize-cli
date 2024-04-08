@@ -53,13 +53,13 @@ def pause(args):
     interrupt = f'/services/interrupts/vectorizer/{task_name}'
     (task_data_bytes,_) = etcd.get(task_key)
     task_data = json.loads(task_data_bytes)
-    if task_data['state'] == 'running':
+    if task_data['status'] == 'running':
         # this is a live interrupt
         interrupt_key = f'/services/interrupt/vectorizer/{task_name}'
         etcd.put(interrupt_key, 'pause')
-    elif task_data['state'] == 'resuming':
+    elif task_data['status'] == 'resuming':
         # we're trying to resume but changed our mind. lets pause again (as long as nothing changed)
-        task_data['state'] = 'paused'
+        task_data['status'] = 'paused'
         (success, _) = etcd.transaction(
             compare=[
                 etcd.transactions.value(task_key) == task_data_bytes,
