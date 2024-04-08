@@ -24,11 +24,31 @@ def claim_to_task(claim):
     return f'{TASKS}{task_id}'
 
 def runnable_status(status):
-    return status in ['pending', 'running', 'resuming']
+    return status in ['pending', 'resuming']
 
 def iterator_to_queue(it, q):
     for v in it:
         q.put(v)
+
+def pause_if_orphan(task_key):
+    claim = task_to_claim(task_key)
+    queue = task_to_queue(task_key)
+    (v,_) = etcd.get(task_key)
+    state = json.loads(v)
+
+    if state['status'] == 'running':
+        state['status'] = 'paused'
+        etcd.transaction(
+            compare=[
+                etcd.transaction.value(task_key) == v,
+                etcd.transactions.version(claim) == 0, # this should always be true if the above is true, but let's check anyway
+            ],
+            success=[
+                etc.transaction.put(task_key, json.dumps(state)),
+                etc.delete(interrupt) # these can't be any good
+            ],
+            failure=[]
+        )
 
 def enqueue(task_key):
     claim = task_to_claim(task_key)
@@ -83,11 +103,8 @@ if __name__ == '__main__':
                 key = event.key.decode('utf-8')
                 if key.startswith(CLAIMS):
                     task_key = claim_to_task(key)
-                    (v,_) = etcd.get(task_key)
-                    state = json.loads(v)
-                    if runnable_status(state['status']):
-                        # claim disappeared, but this task is still runnable. requeue!
-                        enqueue(task_key)
+                    pause_if_orphan(task_key)
+
             # is it a new task?
             elif isinstance(event, etcd3.events.PutEvent):
                 key = event.key.decode('utf-8')
