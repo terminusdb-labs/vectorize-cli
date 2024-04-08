@@ -50,6 +50,7 @@ def pause(args):
     task_name = args.task_name
     task_key = f'/services/tasks/vectorizer/{task_name}'
     queue = f'/services/queue/vectorizer/{task_name}'
+    claim = f'/services/claims/vectorizer/{task_name}'
     interrupt = f'/services/interrupts/vectorizer/{task_name}'
     (task_data_bytes,_) = etcd.get(task_key)
     task_data = json.loads(task_data_bytes)
