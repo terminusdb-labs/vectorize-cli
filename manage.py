@@ -50,6 +50,11 @@ def pause(args):
     interrupt_key = f'/services/interrupt/vectorizer/{task_name}'
     etcd.put(interrupt_key, 'pause')
 
+def resume(args):
+    task_name = args.task_name
+    queue_key = f'/services/queue/vectorizer/{task_name}'
+    etcd.put(queue_key, '')
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
@@ -66,8 +71,11 @@ if __name__ == '__main__':
 
     list_parser = subparsers.add_parser('list', help='list all tasks')
 
-    pause_parser = subparsers.add_parser('pause', help='list all tasks')
-    pause_parser.add_argument('task_name', type=str, help='task name to query')
+    pause_parser = subparsers.add_parser('pause', help='pause task')
+    pause_parser.add_argument('task_name', type=str, help='task name to pause')
+
+    resume_parser = subparsers.add_parser('resume', help='resume task')
+    resume_parser.add_argument('task_name', type=str, help='task name to resume')
 
     args = parser.parse_args()
     host = args.etcd
@@ -87,5 +95,7 @@ if __name__ == '__main__':
             list_tasks(args)
         case 'pause':
             pause(args)
+        case 'resume':
+            resume(args)
         case _:
             parser.print_help()
