@@ -113,6 +113,7 @@ def resume(task):
         task.finish_error(str(e))
 
 def main():
+    global etcd
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
     parser.add_argument('--identity', help='the identity this worker will use when claiming tasks')

@@ -74,6 +74,7 @@ def enqueue(task_key):
     )
 
 def main():
+    global etcd
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
     args = parser.parse_args()
