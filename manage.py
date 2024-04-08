@@ -45,6 +45,11 @@ def list_tasks(args):
         key = kv.key.decode('utf-8')
         print(status_line(key, v))
 
+def pause(args):
+    task_name = args.task_name
+    interrupt_key = f'/services/interrupt/vectorizer/{task_name}'
+    etcd.put(interrupt_key, 'pause')
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
@@ -60,6 +65,9 @@ if __name__ == '__main__':
     status_parser.add_argument('--raw', action='store_true', help='raw output')
 
     list_parser = subparsers.add_parser('list', help='list all tasks')
+
+    pause_parser = subparsers.add_parser('pause', help='list all tasks')
+    pause_parser.add_argument('task_name', type=str, help='task name to query')
 
     args = parser.parse_args()
     host = args.etcd
@@ -77,5 +85,7 @@ if __name__ == '__main__':
             status(args)
         case 'list':
             list_tasks(args)
+        case 'pause':
+            pause(args)
         case _:
             parser.print_help()
