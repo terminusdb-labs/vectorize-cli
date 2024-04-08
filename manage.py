@@ -48,8 +48,36 @@ def list_tasks(args):
 
 def pause(args):
     task_name = args.task_name
-    interrupt_key = f'/services/interrupt/vectorizer/{task_name}'
-    etcd.put(interrupt_key, 'pause')
+    task_key = f'/services/tasks/vectorizer/{task_name}'
+    queue = task_to_queue(task_key)
+    interrupt = task_to_interrupt(task_key)
+    (task_data_bytes,_) = etcd.get(task_key)
+    task_data = json.loads(task_data_bytes)
+    if task_data['state'] == 'running':
+        # this is a live interrupt
+        interrupt_key = f'/services/interrupt/vectorizer/{task_name}'
+        etcd.put(interrupt_key, 'pause')
+    elif task_data['state'] == 'resuming':
+        # we're trying to resume but changed our mind. lets pause again (as long as nothing changed)
+        task_data['state'] = 'paused'
+        (success, _) = etcd.transaction(
+            compare=[
+                etcd.transactions.value(task_key) == task_data_bytes,
+                etcd.transactions.version(claim) == 0, # this should always be true if the above is true, but let's check anyway
+            ],
+            success=[
+                etcd.transactions.put(task_key, json.dumps(task_data))
+                etcd.transactions.delete(interrupt) # these can't be any good
+                etcd.transactions.delete(queue) # don't want to get this from queue anyway
+            ],
+            failure=[]
+        )
+        if not success:
+            print(f'pausing a resuming task failed')
+            sys.exit(1)
+    else:
+        print(f'cannot pause task in state {task_data["state"]}')
+        sys.exit(1)
 
 def resume(args):
     task_name = args.task_name
