@@ -89,11 +89,11 @@ if __name__ == '__main__':
         result = etcd.get_prefix(TASKS, sort_order='ascend', sort_target='create')
         for (v, kv) in result:
             state = json.loads(v)
-            if not runnable_status(state['status']):
-                continue
-
-            task_key = kv.key.decode('utf-8')
-            enqueue(task_key)
+            if state['status'] == 'running':
+                pause_if_orphan(kv.key.decode('utf-8'))
+            elif runnable_status(state['status']):
+                task_key = kv.key.decode('utf-8')
+                enqueue(task_key)
 
         # Now that any stragglers are cleared up, it is time to start relying on the watch
         while True:
