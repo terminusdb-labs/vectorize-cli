@@ -43,7 +43,7 @@ def status(args):
     if args.raw:
         print(json.dumps(task_data, indent=4))
     elif task_data['status'] == 'error':
-        print(status_line(task_data, v))
+        print(status_line(task_key, task_data))
         print(task_data['error'])
     else:
         print(status_line(task_data, v))
