@@ -26,7 +26,13 @@ def status_line(key, val):
     status_line = f'{task_id} ({state["init"]["input_file"]}->{state["init"]["output_file"]}): {state["status"]}'
     progress = state.get('progress')
     if progress:
-        status_line += f', progress: {progress["count"]}/{progress["total"]}, rate: {progress.get("rate"):.2f} (avg {progress.get("avg_rate"):.2f})'
+        rate = 'unknown'
+        avg_rate = 'unknown'
+        if 'rate' in progress:
+            rate = f'{progress["rate"]:.2f}'
+        if 'avg_rate' in progress:
+            avg_rate = f'{progress["avg_rate"]:.2f}'
+        status_line += f', progress: {progress["count"]}/{progress["total"]}, rate: {rate} (avg {avg_rate})'
 
     return status_line
 
@@ -94,6 +100,25 @@ def resume(args):
         print('resume failed')
         sys.exit(1)
 
+
+def retry(args):
+    task_name = args.task_name
+    task_key = f'/services/tasks/vectorizer/{task_name}'
+    (state_bytes, _) = etcd.get(task_key)
+    state = json.loads(state_bytes)
+    if state['status']  != 'error':
+        print('task is not in an error state')
+        sys.exit(1)
+
+    del state['error']
+
+    state['status'] = 'resuming'
+    if not etcd.replace(task_key, state_bytes, json.dumps(state)):
+        print('retry failed')
+        sys.exit(1)
+
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
@@ -116,6 +141,9 @@ if __name__ == '__main__':
     resume_parser = subparsers.add_parser('resume', help='resume task')
     resume_parser.add_argument('task_name', type=str, help='task name to resume')
 
+    retry_parser = subparsers.add_parser('retry', help='retry errored task')
+    retry_parser.add_argument('task_name', type=str, help='task name to retry')
+
     args = parser.parse_args()
     host = args.etcd
     if host is None:
@@ -136,5 +164,7 @@ if __name__ == '__main__':
             pause(args)
         case 'resume':
             resume(args)
+        case 'retry':
+            retry(args)
         case _:
             parser.print_help()
