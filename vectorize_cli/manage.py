@@ -26,7 +26,7 @@ def status_line(key, val):
     status_line = f'{task_id} ({state["init"]["input_file"]}->{state["init"]["output_file"]}): {state["status"]}'
     progress = state.get('progress')
     if progress:
-        status_line += f', progress: {progress["count"]}/{progress["total"]}, rate: {progress["rate"]:.2f} (avg {progress["avg_rate"]:.2f})'
+        status_line += f', progress: {progress["count"]}/{progress["total"]}, rate: {progress.get("rate"):.2f} (avg {progress.get("avg_rate"):.2f})'
 
     return status_line
 
