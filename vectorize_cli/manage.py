@@ -87,7 +87,7 @@ def pause(args):
             print(f'pausing a resuming task failed')
             sys.exit(1)
     else:
-        print(f'cannot pause task in state {task_data["state"]}')
+        print(f'cannot pause task in status {task_data["status"]}')
         sys.exit(1)
 
 def resume(args):
