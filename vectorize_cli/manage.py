@@ -44,7 +44,9 @@ def status(args):
         print(json.dumps(task_data, indent=4))
     elif task_data['status'] == 'error':
         print(status_line(task_key, task_data))
-        print(task_data['error'])
+        RED = '\033[91m'
+        RESET = '\033[0m'
+        print(RED+task_data['error']+RESET)
     else:
         print(status_line(task_data, v))
 
