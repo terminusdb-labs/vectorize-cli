@@ -31,8 +31,8 @@ def start_(task, truncate=0, skip=0):
     input_file = resolve_path(init['input_file'])
     output_file = resolve_path(init['output_file'])
 
-    print(f"Input file: {input_file}")
-    print(f"Output file: {output_file}")
+    print(f"Input file: {input_file}", file=sys.stderr)
+    print(f"Output file: {output_file}", file=sys.stderr)
 
     progress = task.progress()
     if progress is None:
@@ -119,7 +119,7 @@ def resume(task):
     count = size // 4096
     truncate_to = count * 4096
 
-    print(f'resuming after having already vectorized {count}')
+    print(f'resuming after having already vectorized {count}', file=sys.stderr)
     progress = task.progress()
     total = None
     if progress is not None:
@@ -154,14 +154,14 @@ def main():
     directory = args.directory
     if directory is None:
         directory = os.getenv('VECTORIZER_DIRECTORY')
-    print(f'using directory {directory}')
+    print(f'using directory {directory}', file=sys.stderr)
 
     chunk_size = args.chunk_size
     if chunk_size is None:
         chunk_size = int(os.getenv('VECTORIZER_CHUNK_SIZE'))
     if chunk_size is None:
         chunk_size = 100
-    print(f'using chunk size {chunk_size}')
+    print(f'using chunk size {chunk_size}', file=sys.stderr)
 
     etcd = args.etcd
     if etcd is None:
@@ -172,14 +172,14 @@ def main():
     else:
         queue = TaskQueue('vectorizer', identity)
 
-    print('start main loop')
+    print('start main loop', file=sys.stderr)
     try:
         while True:
             task = queue.next_task()
-            print('wow a task: ' + task.status())
+            print('wow a task: ' + task.status(), file=sys.stderr)
             match task.status():
                 case 'pending':
-                    print('starting..')
+                    print('starting..', file=sys.stderr)
                     start(task)
                 case 'resuming':
                     resume(task)
