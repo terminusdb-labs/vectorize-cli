@@ -142,10 +142,12 @@ def main():
     global etcd
     global directory
     global identity
+    global chunk_size
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
     parser.add_argument('--identity', help='the identity this worker will use when claiming tasks')
     parser.add_argument('--directory', help='the directory where files are to be found')
+    parser.add_argument('--chunk-size', type=int, help='the amount of vectors to process at once')
     args = parser.parse_args()
     identity = args.identity if args.identity is not None else retrieve_identity()
 
@@ -153,6 +155,13 @@ def main():
     if directory is None:
         directory = os.getenv('VECTORIZER_DIRECTORY')
     print(f'using directory {directory}')
+
+    chunk_size = args.chunk_size
+    if chunk_size is None:
+        chunk_size = int(os.getenv('VECTORIZER_CHUNK_SIZE'))
+    if chunk_size is None:
+        chunk_size = 100
+    print(f'using chunk size {chunk_size}')
 
     etcd = args.etcd
     if etcd is None:
