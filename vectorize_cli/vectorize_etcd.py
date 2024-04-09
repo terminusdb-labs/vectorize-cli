@@ -6,10 +6,12 @@ import socket
 import argparse
 import os
 import traceback
-from systemd import journal
+from collections import deque
+from datetime import datetime
 
 identity = None
 directory = None
+chunk_size = 100
 
 def retrieve_identity():
     from_env = os.getenv('VECTORIZER_IDENTITY')
@@ -24,12 +26,13 @@ def resolve_path(path):
     return normalized
 
 def start_(task, truncate=0, skip=0):
+    global chunk_size
     init = task.init()
     input_file = resolve_path(init['input_file'])
     output_file = resolve_path(init['output_file'])
 
-    journal.send(f"Input file: {input_file}")
-    journal.send(f"Output file: {output_file}")
+    print(f"Input file: {input_file}")
+    print(f"Output file: {output_file}")
 
     progress = task.progress()
     if progress is None:
@@ -42,32 +45,55 @@ def start_(task, truncate=0, skip=0):
 
     chunk = []
     count = skip
+
     with open(output_file, 'a+') as output_fp:
         # truncate to a safe known size
         output_fp.truncate(truncate)
         output_fp.seek(0, os.SEEK_END)
 
+        duration_queue = deque(maxlen=10)
         with open(input_file, 'r') as input_fp:
+            start_time = datetime.now()
             for line in input_fp:
                 # skip already processed lines
                 if skip != 0:
                     skip -= 1
+                    if skip == 0:
+                        # this was our last skip.
+                        start_time = datetime.now()
                     continue
 
                 json_str = json.loads(line)
                 chunk.append(json_str)
-                if len(chunk) == 100:
+                if len(chunk) == chunk_size:
                     task.alive()
                     vectorize.process_chunk(chunk, output_fp)
+                    end_time = datetime.now()
+                    duration = (end_time - start_time).total_seconds()
+                    start_time = end_time
+
+                    rate = chunk_size / duration
+
+                    duration_queue.append(duration)
+                    avg_rate = (len(duration_queue) * chunk_size) / sum(duration_queue)
+
                     count += len(chunk)
-                    task.set_progress({'count': count, 'total': total})
+                    task.set_progress({'count': count, 'total': total, 'rate': rate, 'avg_rate': avg_rate})
                     chunk = []
         if len(chunk) != 0:
               vectorize.process_chunk(chunk, output_fp)
-              output_fp.flush()
-              count += len(chunk)
-              task.set_progress({'count': count, 'total': total})
+              end_time = datetime.now()
+              duration = (end_time - start_time).total_seconds()
+              start_time = end_time
 
+              rate = len(chunk) / duration
+
+              duration_queue.append(duration)
+              avg_rate = ((len(duration_queue) - 1) * chunk_size + len(chunk)) / sum(duration_queue)
+              count += len(chunk)
+              task.set_progress({'count': count, 'total': total, 'rate': rate, 'avg_rate': avg_rate})
+
+        output_fp.flush()
         os.fsync(output_fp.fileno())
         task.finish(count)
 
@@ -93,7 +119,7 @@ def resume(task):
     count = size // 4096
     truncate_to = count * 4096
 
-    journal.send(f'resuming after having already vectorized {count}')
+    print(f'resuming after having already vectorized {count}')
     progress = task.progress()
     total = None
     if progress is not None:
@@ -126,7 +152,7 @@ def main():
     directory = args.directory
     if directory is None:
         directory = os.getenv('VECTORIZER_DIRECTORY')
-    journal.send(f'using directory {directory}')
+    print(f'using directory {directory}')
 
     etcd = args.etcd
     if etcd is None:
@@ -137,14 +163,14 @@ def main():
     else:
         queue = TaskQueue('vectorizer', identity)
 
-    journal.send('start main loop')
+    print('start main loop')
     try:
         while True:
             task = queue.next_task()
-            journal.send('wow a task: ' + task.status())
+            print('wow a task: ' + task.status())
             match task.status():
                 case 'pending':
-                    journal.send('starting..')
+                    print('starting..')
                     start(task)
                 case 'resuming':
                     resume(task)
