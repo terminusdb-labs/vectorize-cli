@@ -19,9 +19,7 @@ def process(args):
 
     print(f'created task: `{task_name}`')
 
-def status_line(key, val):
-    state = json.loads(val)
-
+def status_line(key, state):
     task_id = key[len('/services/tasks/vectorizer/'):]
     status_line = f'{task_id} ({state["init"]["input_file"]}->{state["init"]["output_file"]}): {state["status"]}'
     progress = state.get('progress')
@@ -41,16 +39,20 @@ def status(args):
     task_key = f'/services/tasks/vectorizer/{task_name}'
     (v,_) = etcd.get(task_key)
 
+    task_data = json.loads(v)
     if args.raw:
-        task_data = json.loads(v)
         print(json.dumps(task_data, indent=4))
+    elif task_data['status'] == 'error':
+        print(status_line(task_data, v))
+        print(task_data['error'])
     else:
-        print(status_line(task_key, v))
+        print(status_line(task_data, v))
 
 def list_tasks(args):
     for (v,kv) in etcd.get_prefix('/services/tasks/vectorizer/'):
         key = kv.key.decode('utf-8')
-        print(status_line(key, v))
+        task_data = json.loads(v)
+        print(status_line(key, task_data))
 
 def pause(args):
     task_name = args.task_name
