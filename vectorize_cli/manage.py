@@ -48,7 +48,7 @@ def status(args):
         RESET = '\033[0m'
         print(RED+task_data['error']+RESET)
     else:
-        print(status_line(task_data, v))
+        print(status_line(task_key, task_data))
 
 def list_tasks(args):
     for (v,kv) in etcd.get_prefix('/services/tasks/vectorizer/'):
