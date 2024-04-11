@@ -158,9 +158,8 @@ def main():
 
     chunk_size = args.chunk_size
     if chunk_size is None:
-        chunk_size = int(os.getenv('VECTORIZER_CHUNK_SIZE'))
-    if chunk_size is None:
-        chunk_size = 100
+        chunk_size_str = os.getenv('VECTORIZER_CHUNK_SIZE')
+        chunk_size = int(chunk_size_str) if chunk_size_str else 100
     print(f'using chunk size {chunk_size}', file=sys.stderr)
 
     etcd = args.etcd

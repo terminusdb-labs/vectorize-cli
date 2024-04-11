@@ -1,60 +1,29 @@
+import argparse
 import sys
-import torch
 import json
-from transformers import AutoTokenizer, BloomModel
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-cpu_device = torch.device("cpu")
-print(f"Using device: {device}")
+from backends.bloom import BloomBackend
+from backends.mxbai import MxbaiBackend
 
-### Initial version copied from model readme
-print("loading tokenizer")
-tokenizer = AutoTokenizer.from_pretrained('izhx/udever-bloom-560m', device_map='auto')
-print("loading model")
-model = BloomModel.from_pretrained('izhx/udever-bloom-560m', device_map='auto').cuda()
-print("loaded")
-
-boq, eoq, bod, eod = '[BOQ]', '[EOQ]', '[BOD]', '[EOD]'
-eoq_id, eod_id = tokenizer.convert_tokens_to_ids([eoq, eod])
-
-if tokenizer.padding_side != 'left':
-    print('!!!', tokenizer.padding_side)
-    tokenizer.padding_side = 'left'
-
-
-def encode(texts: list, is_query: bool = False, max_length=2048):
-    bos = boq if is_query else bod
-    eos_id = eoq_id if is_query else eod_id
-    texts = [bos + t for t in texts]
-    encoding = tokenizer(
-        texts, truncation=True, max_length=max_length - 1, padding=True
-    )
-    for ids, mask in zip(encoding['input_ids'], encoding['attention_mask']):
-        ids.append(eos_id)
-        mask.append(1)
-    inputs = tokenizer.pad(encoding, return_tensors='pt')
-    inputs = inputs.to(device)
-    with torch.inference_mode():
-        outputs = model(**inputs)
-        embeds = outputs.last_hidden_state[:, -1]
-    return embeds
-
-### End of copy
-
-def process_chunk(strings, fp):
-    tensor = encode(strings)
-    tensor = tensor.to(cpu_device)
-    array = tensor.numpy().astype('float32')
-    array.tofile(fp)
+def init_backend(name):
+    match name:
+        case "bloom":
+            return BloomBackend()
+        case "mxbai":
+            return MxbaiBackend()
+        case _:
+            raise Exception(f'unknown backend {args.backend}')
 
 if __name__ == '__main__':
-    # Check if the number of arguments is correct
-    if len(sys.argv) != 3:
-        print("Usage: vectorize <input_file> <output_file>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input_file', help='input file to vectorize')
+    parser.add_argument('output_file', help='output file to write vectors in')
+    parser.add_argument('--backend', help='backend to use')
+    args = parser.parse_args()
 
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
+    input_file = args.input_file
+    output_file = args.output_file
+    backend = init_backend(args.backend)
 
     print(f"Input file: {input_file}")
     print(f"Output file: {output_file}")
@@ -65,7 +34,7 @@ if __name__ == '__main__':
                 json_str = json.loads(line)
                 chunk.append(json_str)
                 if len(chunk) == 100:
-                  process_chunk(chunk, output_fp)
+                  backend.process_chunk(chunk, output_fp)
                   chunk = []
         if len(chunk) != 0:
-              process_chunk(chunk, output_fp)
+              backend.process_chunk(chunk, output_fp)
