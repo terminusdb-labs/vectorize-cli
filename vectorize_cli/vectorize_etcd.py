@@ -8,6 +8,7 @@ import os
 import traceback
 from collections import deque
 from datetime import datetime
+from backends.mxbai import MxbaiBackend
 
 identity = None
 directory = None
@@ -26,6 +27,7 @@ def resolve_path(path):
     return normalized
 
 def start_(task, truncate=0, skip=0):
+    global backend
     global chunk_size
     init = task.init()
     input_file = resolve_path(init['input_file'])
@@ -67,7 +69,7 @@ def start_(task, truncate=0, skip=0):
                 chunk.append(json_str)
                 if len(chunk) == chunk_size:
                     task.alive()
-                    vectorize.process_chunk(chunk, output_fp)
+                    backend.process_chunk(chunk, output_fp)
                     end_time = datetime.now()
                     duration = (end_time - start_time).total_seconds()
                     start_time = end_time
@@ -143,11 +145,14 @@ def main():
     global directory
     global identity
     global chunk_size
+    global backend
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
     parser.add_argument('--identity', help='the identity this worker will use when claiming tasks')
     parser.add_argument('--directory', help='the directory where files are to be found')
     parser.add_argument('--chunk-size', type=int, help='the amount of vectors to process at once')
+    parser.add_argument('--backend', type=str, default=os.getenv('VECTORIZER_BACKEND', 'bloom'), help='the backend to use for vectorization')
     args = parser.parse_args()
     identity = args.identity if args.identity is not None else retrieve_identity()
 
@@ -170,6 +175,8 @@ def main():
         queue = TaskQueue('vectorizer', identity, host=etcd)
     else:
         queue = TaskQueue('vectorizer', identity)
+
+    backend = vectorize.init_backend(args.backend)
 
     print('start main loop', file=sys.stderr)
     try:
