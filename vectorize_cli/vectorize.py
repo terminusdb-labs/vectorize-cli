@@ -2,8 +2,8 @@ import argparse
 import sys
 import json
 
-from backends.bloom import BloomBackend
-from backends.mxbai import MxbaiBackend
+from vectorize_cli.backends.bloom import BloomBackend
+from vectorize_cli.backends.mxbai import MxbaiBackend
 
 def init_backend(name):
     match name:

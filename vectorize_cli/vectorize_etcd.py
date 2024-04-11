@@ -8,7 +8,6 @@ import os
 import traceback
 from collections import deque
 from datetime import datetime
-from backends.mxbai import MxbaiBackend
 
 identity = None
 directory = None
