@@ -82,7 +82,7 @@ def start_(task, truncate=0, skip=0):
                     task.set_progress({'count': count, 'total': total, 'rate': rate, 'avg_rate': avg_rate})
                     chunk = []
         if len(chunk) != 0:
-              vectorize.process_chunk(chunk, output_fp)
+              backend.process_chunk(chunk, output_fp)
               end_time = datetime.now()
               duration = (end_time - start_time).total_seconds()
               start_time = end_time
