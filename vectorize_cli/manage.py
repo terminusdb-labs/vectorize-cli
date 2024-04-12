@@ -121,9 +121,8 @@ def retry(args):
         print('retry failed')
         sys.exit(1)
 
-
-
-if __name__ == '__main__':
+def main():
+    global etcd
     parser = argparse.ArgumentParser()
     parser.add_argument('--etcd', help='hostname of etcd server')
     subparsers = parser.add_subparsers(dest='subcommand')
@@ -149,6 +148,7 @@ if __name__ == '__main__':
     retry_parser.add_argument('task_name', type=str, help='task name to retry')
 
     args = parser.parse_args()
+
     host = args.etcd
     if host is None:
         host = os.getenv('ETCD_HOST')
@@ -172,3 +172,7 @@ if __name__ == '__main__':
             retry(args)
         case _:
             parser.print_help()
+
+
+if __name__ == '__main__':
+    main()
