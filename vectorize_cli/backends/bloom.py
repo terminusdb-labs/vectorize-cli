@@ -3,8 +3,10 @@ import torch
 import json
 from transformers import AutoModel, AutoTokenizer, BloomModel
 
+from .model import ModelBackend
+
 boq, eoq, bod, eod = '[BOQ]', '[EOQ]', '[BOD]', '[EOD]'
-class BloomBackend:
+class BloomBackend(ModelBackend):
     def __init__(self):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.cpu_device = torch.device("cpu")
@@ -44,8 +46,7 @@ class BloomBackend:
             embeds = outputs.last_hidden_state[:, -1]
         return embeds
 
-    def process_chunk(self, strings, fp):
+    def process_chunk_to_array(self, strings):
         tensor = self.encode(strings)
         tensor = tensor.to(self.cpu_device)
-        array = tensor.numpy().astype('float32')
-        array.tofile(fp)
+        return tensor.numpy().astype('float32')
